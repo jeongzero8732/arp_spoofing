@@ -2,7 +2,7 @@
 #define PACKET_HEADER_H
 
 #include <stdint.h>
-#define SessionCount 12
+#define SessionCount 1
 
 #pragma pack(push, 1)
 typedef struct ether_header

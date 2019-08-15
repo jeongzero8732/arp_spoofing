@@ -58,8 +58,9 @@ int main(int argc, char** argv)
         session[i].target_ip=inet_addr(argv[argc-1]);
         session[i].session_count=num;
     }
+    printf("@@@@% x \n",session[0].sender_ip);
 
-    if ((handle = pcap_open_live(dev, BUFSIZ,1, 1000, errbuf))==NULL)
+    if ((handle = pcap_open_live(dev, BUFSIZ,1, 1, errbuf))==NULL)
     {
         fprintf(stderr, "couldn't open device %s: %s\n", dev, errbuf);
         return -1;
@@ -86,22 +87,9 @@ int main(int argc, char** argv)
         int res = pcap_next_ex(handle, &header, &packet);
         if (res == 0) continue;
         if (res == -1 || res == -2) break;
-      //  printf("%u bytes captured\n", header->caplen);
-        get_packet(header->caplen, packet, session,handle);
+        printf("%u bytes captured\n", header->caplen);
+        get_packet(header->len, packet, session,handle);
     }
-
-    //make arp_reply pkt
-   // make_arp_packet(session,3);
-
-    //arp reply for infection
-//    for(int i=0; i<session->session_count; i++)
-//    {
-//        if (pcap_sendpacket(handle, session[i].senderpacket, sizeof(ARP_PKT) /* size */ ) != 0 )
-//        {
-//            fprintf(stderr,"\nError sending the packet: \n", pcap_geterr(handle));
-//            return -1;
-//        }
-//    }
 
     pcap_close(handle);
 
