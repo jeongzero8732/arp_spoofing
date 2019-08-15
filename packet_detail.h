@@ -5,6 +5,7 @@
 
 void my_mac(char*);
 void my_ip(char*);
+void gate_mac(Session*);
 void make_ether_packet(Session*, int, int);
 void make_arp_packet(Session* session,int,int);
 #endif // MY_INFO_H

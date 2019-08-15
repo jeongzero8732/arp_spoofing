@@ -36,6 +36,8 @@ void make_arp_request(Session* session,int num)
         memcpy(session[i].senderpacket+sizeof(ETHER_HDR),&(arp_req[i].arp),sizeof(ARP_HDR));
     }
 
+
+
 }
 
 void make_arp_reply(Session* session,int num, int index)

@@ -65,6 +65,7 @@ typedef struct session
     uint32_t sender_ip;
     uint32_t target_ip;
     uint8_t senderpacket[42];
+    uint8_t find_gateway_mac[42];
 }Session;
 
 #pragma pop(1)
@@ -73,6 +74,7 @@ extern ETHER_HDR ether_hdr[SessionCount];
 extern ARP_HDR arp_hdr[SessionCount];
 extern ARP_PKT arp_req[SessionCount];
 extern ARP_PKT arp_rpy[SessionCount];
+extern ARP_PKT arp_for_mac;
 
 extern uint8_t MY_MAC[6];
 extern uint32_t MY_IP;

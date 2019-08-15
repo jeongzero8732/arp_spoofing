@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <pcap.h>
 
-void get_info(char*,int);
+void get_info(char*,int,Session*);
 int get_packet(int size, const uint8_t* packet, Session* session, pcap_t*);
 
 

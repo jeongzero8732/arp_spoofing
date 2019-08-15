@@ -22,6 +22,7 @@ ETHER_HDR ether_hdr[SessionCount];
 ARP_HDR arp_hdr[SessionCount];
 ARP_PKT arp_req[SessionCount];
 ARP_PKT arp_rpy[SessionCount];
+ARP_PKT arp_for_mac;
 
 IPV4_HDR* ip_pkt;
 
@@ -43,13 +44,12 @@ int main(int argc, char** argv)
     pcap_t* handle;
     char errbuf[PCAP_ERRBUF_SIZE];
 
+
     printf("insert session count : ");
     scanf("%d",&num);
 
 
     Session session[num];
-    get_info(dev,1); //my mac
-    get_info(dev,2); //my ip
 
     //sessio_ip store
     for(int i=0; i<num; i++)
@@ -58,11 +58,21 @@ int main(int argc, char** argv)
         session[i].target_ip=inet_addr(argv[argc-1]);
         session[i].session_count=num;
     }
-    printf("@@@@% x \n",session[0].sender_ip);
+
+    get_info(dev,1,session); //my mac
+    get_info(dev,2,session); //my ip
+    get_info(dev,3,session); //gate mac
 
     if ((handle = pcap_open_live(dev, BUFSIZ,1, 1, errbuf))==NULL)
     {
         fprintf(stderr, "couldn't open device %s: %s\n", dev, errbuf);
+        return -1;
+    }
+
+    //send arp for find_gate_mac
+    if (pcap_sendpacket(handle, session->find_gateway_mac, sizeof(ARP_PKT) /* size */ ) != 0 )
+    {
+        fprintf(stderr,"\nError sending the packet: \n", pcap_geterr(handle));
         return -1;
     }
 

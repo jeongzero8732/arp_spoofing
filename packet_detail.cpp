@@ -70,6 +70,26 @@ void my_ip(char* device)
 
 }
 
+void gate_mac(Session* session)
+{
+     make_ether_packet(session,0,0);
+
+     arp_hdr->hardware_type = htons(ETHERNET);
+     arp_hdr->protocol_type = htons(ARP);
+     arp_hdr->hardware_size = HARD_SIZE;
+     arp_hdr->protocol_size = PRO_SIZE;
+     arp_hdr->opcode=htons(0x0001);
+
+     memcpy(arp_hdr->sender_macaddr,ether_hdr->eth_src,6);
+     memset(arp_hdr->target_macaddr,0x00,6);
+     arp_hdr->sender_ipaddr=MY_IP;
+     arp_hdr->target_ipaddr=session->target_ip;
+
+     memcpy(&(arp_req->eth),ether_hdr,sizeof(ETHER_HDR));
+     memcpy(&(arp_req->arp),arp_hdr,sizeof(ARP_HDR));
+     memcpy(session->find_gateway_mac,&(arp_req->eth),sizeof(ETHER_HDR));
+     memcpy(session->find_gateway_mac+sizeof(ETHER_HDR),&(arp_req->arp),sizeof(ARP_HDR));
+}
 void make_ether_packet(Session* session, int num, int index)
 {
     /*
@@ -77,7 +97,14 @@ void make_ether_packet(Session* session, int num, int index)
     */
     uint8_t broad[6];
 
-    if(num == 1 )
+    if(num==0)
+    {
+        memset(broad,0xff,6);
+        memcpy(ether_hdr->eth_src,MY_MAC,6);
+        memcpy(ether_hdr->eth_dst,broad,6);//modify later
+        ether_hdr->eth_type=htons(E_ARP);
+    }
+    else if(num == 1 )
     {
         for(int i=0;i< session->session_count; i++)
         {
