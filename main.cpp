@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
     printf("insert session count : ");
     scanf("%d",&num);
-
+    //argv[argc-1]
 
     Session session[num];
 

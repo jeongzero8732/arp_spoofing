@@ -119,7 +119,7 @@ int get_packet(int size, const uint8_t* packet, Session* session, pcap_t* handle
                // printf("## %x\n",get_ip->ip_srcaddr);
                // printf("## %x\n",session[i].sender_ip);
             if(get_ip->ip_srcaddr==session[i].sender_ip && memcpy(get_eth->eth_src,arp_rpy->arp.target_macaddr,6) )
-            {   // printf("456\n");
+            {    printf("456\n");
                 memcpy(relay_pkt,packet,size);
                 memcpy(relay_pkt,gateMac,6);
                 memcpy(relay_pkt+6,MY_MAC,6);
