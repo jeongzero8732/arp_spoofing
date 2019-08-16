@@ -42,7 +42,9 @@ void my_mac(char* device)
     }
 
     memcpy(MY_MAC,mac, 6);
-    printf("%x %x %x %x %x %x\n",mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]);
+
+    //for debuging
+    //printf("%x %x %x %x %x %x\n",mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]);
 
     close(fd);
 }
@@ -63,7 +65,7 @@ void my_ip(char* device)
     close(n);
 
     //display result
-    printf("IP Address is %s - %s\n" , array , inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr) );
+    //printf("IP Address is %s - %s\n" , array , inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr) );
 
    // printf("%x %x %x %x",buf[0],buf[1],buf[2],buf[3],buf[4]);
     MY_IP=(uint32_t)(inet_addr(inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr)));
@@ -92,32 +94,29 @@ void gate_mac(Session* session)
 }
 void make_ether_packet(Session* session, int num, int index)
 {
-    /*
-        1. check broadcast or multicast
-    */
     uint8_t broad[6];
 
-    if(num==0)
+    if(num==0) //for find gateway mac
     {
         memset(broad,0xff,6);
         memcpy(ether_hdr->eth_src,MY_MAC,6);
-        memcpy(ether_hdr->eth_dst,broad,6);//modify later
+        memcpy(ether_hdr->eth_dst,broad,6);
         ether_hdr->eth_type=htons(E_ARP);
     }
-    else if(num == 1 )
+    else if(num == 1 ) // for find target mac
     {
         for(int i=0;i< session->session_count; i++)
         {
             memset(broad,0xff,6);
             memcpy(ether_hdr[i].eth_src,MY_MAC,6);
-            memcpy(ether_hdr[i].eth_dst,broad,6);//modify later
+            memcpy(ether_hdr[i].eth_dst,broad,6);
             ether_hdr[i].eth_type=htons(E_ARP);
         }
     }
-    else if(num ==3)
+    else if(num ==3) // for make reply pky
     {
         memcpy(ether_hdr[index].eth_src,MY_MAC,6);
-        memcpy(ether_hdr[index].eth_dst,arp_rpy[index].arp.target_macaddr,6);//modify later
+        memcpy(ether_hdr[index].eth_dst,arp_rpy[index].arp.target_macaddr,6);
         ether_hdr[index].eth_type=htons(E_ARP);
     }
 
@@ -132,7 +131,6 @@ void make_arp_packet(Session* session,int num, int index)
         make_arp_request(session,num);
         break;
         case 2:
-        //make_arp_request_multicast(sender_ip,target_ip);
         break;
         case 3:
         make_arp_reply(session,num,index);

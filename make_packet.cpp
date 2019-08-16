@@ -8,16 +8,11 @@
 // make arp_packet
 void make_arp_request(Session* session,int num)
 {
-    /*
-        1. check reqeust or reply
-        2. check broadcast or multicast
-    */
 
     make_ether_packet(session,num,0);
 
     for(int i=0; i< session->session_count; i++)
     {
-        // 1. arp_reqeust and broadcast
 
         arp_hdr[i].hardware_type = htons(ETHERNET);
         arp_hdr[i].protocol_type = htons(ARP);

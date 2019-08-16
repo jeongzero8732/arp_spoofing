@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
     printf("insert session count : ");
     scanf("%d",&num);
-    //argv[argc-1]
+    puts("---------------------------------------------------------------");
 
     Session session[num];
 
@@ -72,6 +72,8 @@ int main(int argc, char** argv)
     //send arp for find_gate_mac
     if (pcap_sendpacket(handle, session->find_gateway_mac, sizeof(ARP_PKT) /* size */ ) != 0 )
     {
+        fprintf(stderr,"=================find gateway mac================\n");
+
         fprintf(stderr,"\nError sending the packet: \n", pcap_geterr(handle));
         return -1;
     }
@@ -84,6 +86,8 @@ int main(int argc, char** argv)
     {
         if (pcap_sendpacket(handle, session[i].senderpacket, sizeof(ARP_PKT) /* size */ ) != 0 )
         {
+            fprintf(stderr,"=================arp request for target mac================\n");
+
             fprintf(stderr,"\nError sending the packet: \n", pcap_geterr(handle));
             return -1;
         }
@@ -97,7 +101,7 @@ int main(int argc, char** argv)
         int res = pcap_next_ex(handle, &header, &packet);
         if (res == 0) continue;
         if (res == -1 || res == -2) break;
-        printf("%u bytes captured\n", header->caplen);
+        //printf("%u bytes captured\n", header->caplen);
         get_packet(header->len, packet, session,handle);
     }
 
