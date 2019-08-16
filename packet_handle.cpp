@@ -127,7 +127,7 @@ int get_packet(int size, const uint8_t* packet, Session* session, pcap_t* handle
 
         for(int i=0; i< session->session_count; i++)
         {
-            if(get_ip->ip_srcaddr==session[i].sender_ip && memcmp(get_eth->eth_src,arp_rpy->arp.target_macaddr,6)==0 && memcmp(get_eth->eth_dst,MY_MAC,6)==0 )
+            if(get_ip->ip_srcaddr==session[i].sender_ip && memcmp(get_eth->eth_src,arp_rpy->arp.target_macaddr,6)==0 /*&& memcmp(get_eth->eth_dst,MY_MAC,6)==0*/ )
             {
                 //forwarding ip relay pkt
                 memcpy(relay_pkt,packet,(size_t)size);
