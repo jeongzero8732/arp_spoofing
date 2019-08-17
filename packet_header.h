@@ -2,7 +2,7 @@
 #define PACKET_HEADER_H
 
 #include <stdint.h>
-#define SessionCount 1
+#define SessionCount 10
 
 #pragma pack(push, 1)
 typedef struct ether_header
@@ -64,7 +64,8 @@ typedef struct session
     int session_count;
     uint32_t sender_ip;
     uint32_t target_ip;
-    uint8_t senderpacket[42];
+    uint8_t sender_arp_request[42];
+    uint8_t sender_arp_reply[42];
     uint8_t find_gateway_mac[42];
 }Session;
 
@@ -78,5 +79,6 @@ extern ARP_PKT arp_for_mac;
 
 extern uint8_t MY_MAC[6];
 extern uint32_t MY_IP;
+extern uint8_t gateMac[6];
 
 #endif // PACKET_HEADER_H

@@ -39,9 +39,11 @@ int main(int argc, char** argv)
       return -1;
     }
 
-    int num;
+    int num,k;
+    int tmp=0;
     char* dev=argv[1];
     pcap_t* handle;
+    pcap_t* handle2;
     char errbuf[PCAP_ERRBUF_SIZE];
 
 
@@ -54,9 +56,12 @@ int main(int argc, char** argv)
     //sessio_ip store
     for(int i=0; i<num; i++)
     {
-        session[i].sender_ip=inet_addr(argv[argc-2]);
-        session[i].target_ip=inet_addr(argv[argc-1]);
+        session[i].sender_ip=inet_addr(argv[i*2+2]);
+        session[i].target_ip=inet_addr(argv[i*2+3]);
         session[i].session_count=num;
+        memset(session[i].sender_arp_request,0x00,sizeof(session[i].sender_arp_request));
+        memset(session[i].sender_arp_reply,0x00,sizeof(session[i].sender_arp_reply));
+
     }
 
     get_info(dev,1,session); //my mac
@@ -78,22 +83,6 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    //make arp_request pkts
-    make_arp_packet(session,1,0);
-
-    //arp reqeust
-    for(int i=0; i<session->session_count; i++)
-    {
-        if (pcap_sendpacket(handle, session[i].senderpacket, sizeof(ARP_PKT) /* size */ ) != 0 )
-        {
-            fprintf(stderr,"=================arp request for target mac================\n");
-
-            fprintf(stderr,"\nError sending the packet: \n", pcap_geterr(handle));
-            return -1;
-        }
-    }
-
-    //find target_mac
     while (true)
     {
         struct pcap_pkthdr* header;
@@ -101,11 +90,60 @@ int main(int argc, char** argv)
         int res = pcap_next_ex(handle, &header, &packet);
         if (res == 0) continue;
         if (res == -1 || res == -2) break;
-        //printf("%u bytes captured\n", header->caplen);
-        get_packet(header->len, packet, session,handle);
+       // printf("%u bytes captured\n", header->caplen);
+        if(get_mac_packet(header->len, packet, session,handle)==1)
+            break;
     }
 
     pcap_close(handle);
+
+    if ((handle2 = pcap_open_live(dev, BUFSIZ,1, 1, errbuf))==NULL)
+    {
+        fprintf(stderr, "couldn't open device %s: %s\n", dev, errbuf);
+        return -1;
+    }
+
+    //make arp_request pkts
+    make_arp_packet(session,1,0);
+
+    //arp reqeust
+    for(int i=0; i<session->session_count; i++)
+    {
+        printf("send arp request to find target mac!!\n");
+        if (pcap_sendpacket(handle2, session[i].sender_arp_request, sizeof(ARP_PKT) /* size */ ) != 0 )
+        {
+            fprintf(stderr,"=================arp request for target mac================\n");
+
+            fprintf(stderr,"\nError sending the packet: \n", pcap_geterr(handle));
+            return -1;
+        }
+
+        printf("send arp request to find target mac!!\n");
+        if (pcap_sendpacket(handle2, session[i].sender_arp_request, sizeof(ARP_PKT) /* size */ ) != 0 )
+        {
+            fprintf(stderr,"=================arp request for target mac================\n");
+
+            fprintf(stderr,"\nError sending the packet: \n", pcap_geterr(handle));
+            return -1;
+        }
+
+    }
+
+    //find target_mac
+    while (true)
+    {
+        k++;
+        struct pcap_pkthdr* header2;
+        const u_char* packet2;
+        int res2 = pcap_next_ex(handle2, &header2, &packet2);
+        if (res2 == 0) continue;
+        if (res2 == -1 || res2 == -2) break;
+       // printf("%u bytes captured\n", header->caplen);
+        get_packet(header2->len, packet2, session,handle2);
+        printf("k\n");
+    }
+
+    pcap_close(handle2);
 
     return 0;
 }

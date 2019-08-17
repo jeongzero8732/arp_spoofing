@@ -25,10 +25,10 @@ void make_arp_request(Session* session,int num)
         arp_hdr[i].sender_ipaddr=MY_IP;
         arp_hdr[i].target_ipaddr=session[i].sender_ip;
 
-        memcpy(&(arp_req[i].eth),ether_hdr,sizeof(ETHER_HDR));
-        memcpy(&(arp_req[i].arp),arp_hdr,sizeof(ARP_HDR));
-        memcpy(session[i].senderpacket,&(arp_req[i].eth),sizeof(ETHER_HDR));
-        memcpy(session[i].senderpacket+sizeof(ETHER_HDR),&(arp_req[i].arp),sizeof(ARP_HDR));
+        memcpy(&(arp_req[i].eth),&(ether_hdr[i]),sizeof(ETHER_HDR));
+        memcpy(&(arp_req[i].arp),&(arp_hdr[i]),sizeof(ARP_HDR));
+        memcpy(session[i].sender_arp_request,&(arp_req[i].eth),sizeof(ETHER_HDR));
+        memcpy(session[i].sender_arp_request+sizeof(ETHER_HDR),&(arp_req[i].arp),sizeof(ARP_HDR));
     }
 
 
@@ -52,7 +52,7 @@ void make_arp_reply(Session* session,int num, int index)
 
     memcpy(&(arp_rpy[index].eth),&ether_hdr[index],sizeof(ETHER_HDR));
     memcpy(&(arp_rpy[index].arp),&arp_hdr[index],sizeof(ARP_HDR));
-    memcpy(session[index].senderpacket,&(arp_rpy[index].eth),sizeof(ETHER_HDR));
-    memcpy(session[index].senderpacket+sizeof(ETHER_HDR),&(arp_rpy[index].arp),sizeof(ARP_HDR));
+    memcpy(session[index].sender_arp_reply,&(arp_rpy[index].eth),sizeof(ETHER_HDR));
+    memcpy(session[index].sender_arp_reply+sizeof(ETHER_HDR),&(arp_rpy[index].arp),sizeof(ARP_HDR));
 
 }
